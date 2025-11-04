@@ -2,16 +2,17 @@
 # Author: Erin McCaffrey 
 # Date created: 250811
 # Overview: This script reads in Ivan's Xenium data. It extracts out the position
-# and identity of each cell. Additionally, it defines the granuloma x and y center
-# for each tissue
+# and identity of each cell. Additionally it appends the expression of select
+# genes for downstream analysis.
 
 library(Seurat)
 library(dplyr)
+library(tidyr)
 library(spacexr)
 
 ##..Step 1: Load the RDS file..##
 
-setwd('/Volumes/ThunderBlade/Dang_Lab_Xenium')
+setwd('/Volumes/T7 Shield/Dang_Lab_Crypto_Grans/xenium/xenium_data')
 seurat_object <- readRDS("Xenium_Ivan_merged_clustered.rds")
 seurat_macs <- readRDS("Xenium_Ivan_Macrophages.rds")
 
@@ -46,5 +47,51 @@ merged_df <- merged_df %>%
 merged_df <- merged_df %>% select(-cell_types)
 merged_df$subset <- droplevels(merged_df$subset)
 
-##..Step 5: Export..##
+##..Step 5: Get the gene expression data for selected genes..##
+
+# define genes
+genes_of_interest <- c(
+  "Mxd1",
+  "Cd274",
+  "Arg1",
+  "Chil3",
+  "Cd68",
+  "Itgam",
+  "Ighm",
+  "Tcf7",
+  "Cd3e",
+  "Col1a2",
+  "Cxcl12",
+  "Cxcl10",
+  "Cxcl16",
+  "Cxcl13")
+
+# extract expression
+da <- DefaultAssay(seurat_object)
+fetch_expr <- function(obj, vars, cells, layer = c("data","counts","scale.data")) {
+  layer <- layer[1]
+  # Try v5 signature with 'layer='
+  out <- tryCatch(
+    FetchData(obj, vars = vars, cells = cells, layer = layer),
+    error = function(e) e
+  )
+  if (inherits(out, "error")) {
+    # Fall back to v4 signature with 'slot='
+    slot_map <- list("data" = "data", "counts" = "counts", "scale.data" = "scale.data")
+    out <- FetchData(obj, vars = vars, cells = cells, slot = slot_map[[layer]])
+  }
+  out
+}
+
+expr_df <- fetch_expr(seurat_object,
+                      vars  = present,
+                      cells = merged_df$cell,
+                      layer = "data")
+expr_df$cell <- rownames(expr_df)
+
+# merge with cell data
+merged_df <- merged_df %>% left_join(expr_df, by = "cell")
+
+
+##..Step 6: Export..##
 write.csv(merged_df, file="Dang-lab_xenium_spatial-data.csv",row.names = FALSE)

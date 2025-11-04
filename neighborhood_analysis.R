@@ -17,7 +17,7 @@ setwd("/Volumes/T7 Shield/dang_lab_crypto_grans/Xenium/")
 neighborhood_data <- read.csv('dang_xenium_neighborhoods_r50_k10.csv')
 neighborhood_color_key <- read.csv('r50_k10_color-key.csv')
 
-##..Get the prevalance of the clusters per tissue..##
+##..Get the prevalence of the clusters per tissue..##
 
 neighborhood_summary <- neighborhood_data %>% 
   group_by(Samples) %>%

@@ -17,7 +17,7 @@ spatial_data <- read.csv('Dang-lab_xenium_spatial-data.csv')
 
 ##..Step 2: Define parameters..##
 
-radius <- 25
+radius <- 50
 per_sample_results <- list()
 
 ##..Step 3: Perform neighbor analysis..##
@@ -90,4 +90,4 @@ for (sample_id in unique(spatial_data$Samples)) {
 final_neighbor_summary <- do.call(rbind, per_sample_results)
 
 # Export
-write.csv(final_neighbor_summary, "dang_xenium_neighbor-mat_25px.csv", row.names = F)
+write.csv(final_neighbor_summary, "dang_xenium_neighbor-mat_50px.csv", row.names = F)
